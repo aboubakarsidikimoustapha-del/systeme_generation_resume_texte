@@ -5,7 +5,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 import re
 
-# Liste de mots-vides français directement dans le code pour la portabilité.
+# ==============================================================================
+#                      Logique de Résumé Multilingue
+# ==============================================================================
+
+# --- Mots-vides pour le résumé extractif ---
 STOP_WORDS_FR = [
     "a", "à", "alors", "au", "aucuns", "aussi", "autre", "avant", "avec", "avoir",
     "bon", "car", "ce", "cela", "ces", "ceux", "chaque", "ci", "comme", "comment",
@@ -23,33 +27,47 @@ STOP_WORDS_FR = [
 ]
 
 def split_into_sentences(text):
-    """Découpe le texte en phrases de manière robuste."""
+    """Découpe le texte en phrases (agnostique à la langue)."""
     text = re.sub(r'([.!?])([A-Z])', r'\1 \2', text)
     sentences = re.split(r'(?<=[.!?])\s+', text)
     return [s.strip() for s in sentences if s.strip()]
 
+# --- Résumé Abstractif ---
+
 @st.cache_resource
-def get_abstractive_summarizer():
-    """Charge le modèle de résumé abstractif et le met en cache."""
+def get_abstractive_summarizer(lang="fr"):
+    """
+    Charge et met en cache le modèle de résumé abstractif approprié pour la langue.
+    """
+    if lang == "en":
+        model_name = "sshleifer/distilbart-cnn-12-6"
+    else:  # Français par défaut
+        model_name = "plguillou/t5-base-fr-sum-cnndm"
+    
     return pipeline(
         "summarization",
-        model="plguillou/t5-base-fr-sum-cnndm",
+        model=model_name,
         torch_dtype=torch.bfloat16
     )
 
-def abstractive_summary(text, min_length=30, max_length=150):
-    """Génère un résumé abstractif."""
-    summarizer = get_abstractive_summarizer()
+def abstractive_summary(text, lang="fr", min_length=30, max_length=150):
+    """Génère un résumé abstractif dans la langue choisie."""
+    summarizer = get_abstractive_summarizer(lang)
     summary = summarizer(text, min_length=min_length, max_length=max_length, truncation=True)
     return summary[0]['summary_text']
 
-def extractive_summary(text, num_sentences=3):
-    """Génère un résumé extractif."""
+# --- Résumé Extractif ---
+
+def extractive_summary(text, lang="fr", num_sentences=3):
+    """Génère un résumé extractif dans la langue choisie."""
     sentences = split_into_sentences(text)
     if not sentences or len(sentences) <= num_sentences:
         return text
 
-    vectorizer = TfidfVectorizer(stop_words=STOP_WORDS_FR)
+    # Choisir les mots-vides en fonction de la langue
+    stop_words = STOP_WORDS_FR if lang == "fr" else "english"
+
+    vectorizer = TfidfVectorizer(stop_words=stop_words)
     try:
         tfidf_matrix = vectorizer.fit_transform(sentences)
     except ValueError:
