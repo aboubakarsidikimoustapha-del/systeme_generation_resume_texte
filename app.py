@@ -4,13 +4,13 @@ from generator import generate_text
 
 # Configuration de la page (titre de l'onglet, icône, layout)
 st.set_page_config(
-    page_title="Générateur & Résumeur de Texte",
+    page_title="Générateur et Résumeur de Texte",
     page_icon="✍️",
     layout="wide"
 )
 
 # Titre principal et description
-st.title("🤖 Système de Génération et Résumé de Texte NLP")
+st.title("SGRTexte NLP")
 st.markdown("Une application pour générer et résumer des textes en français, basée sur des modèles Transformers.")
 
 # Barre latérale de navigation
@@ -61,4 +61,5 @@ elif app_mode == "Génération de Texte":
 
 # Pied de page dans la barre latérale
 st.sidebar.markdown("---")
-st.sidebar.info("Projet DSC559 – PROJET 3")
+
+st.sidebar.info("Projet de synthese")
