@@ -1,68 +1,81 @@
-# Ce fichier contiendra les fonctions pour le résumé de texte (extractif et abstractif).
-
 import streamlit as st
 import torch
 from transformers import pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
-import nltk
+import re
 
-# S'assurer que le tokeniseur de phrases de NLTK est téléchargé
-try:
-    nltk.data.find('tokenizers/punkt')
-except nltk.downloader.DownloadError:
-    nltk.download('punkt')
+# ==============================================================================
+#                      Logique de Résumé Multilingue
+# ==============================================================================
 
-# ----- Modèle de résumé abstractif (Hugging Face) -----
-# Utilisation du cache pour éviter de recharger le modèle à chaque appel
+# --- Mots-vides pour le résumé extractif ---
+STOP_WORDS_FR = [
+    "a", "à", "alors", "au", "aucuns", "aussi", "autre", "avant", "avec", "avoir",
+    "bon", "car", "ce", "cela", "ces", "ceux", "chaque", "ci", "comme", "comment",
+    "dans", "des", "du", "dedans", "dehors", "depuis", "devrait", "doit", "donc",
+    "dos", "début", "elle", "elles", "en", "encore", "essai", "est", "et", "eu",
+    "faire", "fait", "faites", "fois", "font", "hors", "ici", "il", "ils", "je",
+    "juste", "la", "le", "les", "leur", "là", "ma", "maintenant", "mais", "mes",
+    "mien", "moins", "mon", "mot", "même", "ni", "nommés", "notre", "nous",
+    "ou", "où", "par", "parce", "pas", "peut", "peu", "plupart", "pour", "pourquoi",
+    "quand", "que", "quel", "quelle", "quelles", "quels", "qui", "sa", "sans",
+    "ses", "seulement", "si", "sien", "son", "sont", "sous", "soyez", "sujet",
+    "sur", "ta", "tandis", "tellement", "tels", "tes", "ton", "tous", "tout",
+    "trop", "très", "tu", "voient", "vont", "votre", "vous", "vu", "ça", "étaient",
+    "état", "étions", "été", "être"
+]
+
+def split_into_sentences(text):
+    """Découpe le texte en phrases (agnostique à la langue)."""
+    text = re.sub(r'([.!?])([A-Z])', r'\1 \2', text)
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    return [s.strip() for s in sentences if s.strip()]
+
+# --- Résumé Abstractif ---
+
 @st.cache_resource
-def get_abstractive_summarizer():
-    """Charge et retourne le pipeline de résumé abstractif."""
+def get_abstractive_summarizer(lang="fr"):
+    """
+    Charge et met en cache le modèle de résumé abstractif approprié pour la langue.
+    """
+    if lang == "en":
+        model_name = "sshleifer/distilbart-cnn-12-6"
+    else:  # Français par défaut
+        model_name = "plguillou/t5-base-fr-sum-cnndm"
+
     return pipeline(
         "summarization",
-        model="plguillou/t5-base-fr-sum-cnndm",
-        torch_dtype=torch.bfloat16 # Utiliser bfloat16 pour de meilleures performances si supporté
+        model=model_name,
+        torch_dtype=torch.bfloat16
     )
 
-def abstractive_summary(text, min_length=30, max_length=150):
-    """
-    Génère un résumé abstractif du texte en utilisant un modèle T5.
-    """
-    summarizer = get_abstractive_summarizer()
+def abstractive_summary(text, lang="fr", min_length=30, max_length=150):
+    """Génère un résumé abstractif dans la langue choisie."""
+    summarizer = get_abstractive_summarizer(lang)
     summary = summarizer(text, min_length=min_length, max_length=max_length, truncation=True)
     return summary[0]['summary_text']
 
+# --- Résumé Extractif ---
 
-# ----- Modèle de résumé extractif (Baseline TF-IDF) -----
-def extractive_summary(text, num_sentences=3):
-    """
-    Génère un résumé extractif en sélectionnant les phrases les plus importantes
-    via le score TF-IDF.
-    """
-    # 1. Séparer le texte en phrases
-    sentences = nltk.sent_tokenize(text, language='french')
-
-    if len(sentences) <= num_sentences:
+def extractive_summary(text, lang="fr", num_sentences=3):
+    """Génère un résumé extractif dans la langue choisie."""
+    sentences = split_into_sentences(text)
+    if not sentences or len(sentences) <= num_sentences:
         return text
 
-    # 2. Créer une représentation TF-IDF des phrases
-    vectorizer = TfidfVectorizer(stop_words='french')
+    # Choisir les mots-vides en fonction de la langue
+    stop_words = STOP_WORDS_FR if lang == "fr" else "english"
+
+    vectorizer = TfidfVectorizer(stop_words=stop_words)
     try:
         tfidf_matrix = vectorizer.fit_transform(sentences)
     except ValueError:
-        # Peut arriver si le texte ne contient que des stop words
-        return "Le texte fourni est trop court ou ne contient pas de mots significatifs pour générer un résumé."
+        return "Le texte fourni est trop court ou ne contient pas de mots significatifs."
 
-
-    # 3. Calculer le score de chaque phrase (somme des scores TF-IDF de ses mots)
     sentence_scores = np.array(tfidf_matrix.sum(axis=1)).ravel()
-
-    # 4. Sélectionner les indices des N phrases avec les meilleurs scores
     top_sentence_indices = sentence_scores.argsort()[-num_sentences:][::-1]
-
-    # Ordonner les phrases sélectionnées selon leur ordre d'apparition original
     top_sentence_indices.sort()
 
-    # 5. Concaténer les phrases pour former le résumé
     summary = " ".join([sentences[i] for i in top_sentence_indices])
     return summary

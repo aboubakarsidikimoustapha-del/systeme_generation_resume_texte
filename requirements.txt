@@ -2,5 +2,4 @@ streamlit
 transformers
 torch
 scikit-learn
-sentencepiece # Dépendance pour certains tokenizers comme T5
-nltk
+sentencepiece
