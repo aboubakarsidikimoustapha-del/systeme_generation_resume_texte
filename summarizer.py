@@ -43,7 +43,7 @@ def get_abstractive_summarizer(lang="fr"):
         model_name = "sshleifer/distilbart-cnn-12-6"
     else:  # Français par défaut
         model_name = "plguillou/t5-base-fr-sum-cnndm"
-
+    
     return pipeline(
         "summarization",
         model=model_name,

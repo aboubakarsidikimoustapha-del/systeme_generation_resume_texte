@@ -15,7 +15,7 @@ def get_text_generator(lang="fr"):
         model_name = "gpt2"
     else:  # Français par défaut
         model_name = "dbddv01/gpt2-french-small"
-
+        
     return pipeline(
         "text-generation",
         model=model_name,
