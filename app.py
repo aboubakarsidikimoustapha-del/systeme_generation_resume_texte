@@ -3,6 +3,14 @@ from summarizer import extractive_summary, abstractive_summary
 from generator import generate_text
 
 # ==============================================================================
+#                      Configuration de la Page (Doit être la première commande)
+# ==============================================================================
+st.set_page_config(
+    page_title="Générateur & Résumeur",
+    layout="wide"
+)
+
+# ==============================================================================
 #                      Fonction de Connexion
 # ==============================================================================
 
@@ -14,13 +22,12 @@ def check_password():
     password = st.text_input("Mot de passe", type="password")
 
     if st.button("Se connecter"):
-        # Le mot de passe par défaut est utilisé si le secret n'est pas configuré
-        # ce qui permet de tester l'application localement sans secrets.
         expected_password = st.secrets.get("APP_PASSWORD", "default_password")
 
         if password == expected_password:
             st.session_state["password_correct"] = True
-            st.experimental_rerun()
+            # CORRECTION : Utilisation de la nouvelle syntaxe recommandée
+            st.rerun()
         else:
             st.error("Le mot de passe fourni est incorrect.")
 
@@ -146,12 +153,6 @@ def run_app():
 # ==============================================================================
 #                               Point d'Entrée
 # ==============================================================================
-
-# Configuration de la page doit être la première commande Streamlit
-st.set_page_config(
-    page_title="App Gated",
-    layout="wide"
-)
 
 # Initialiser l'état de session si non présent
 if "password_correct" not in st.session_state:
