@@ -2,15 +2,18 @@ import streamlit as st
 from summarizer import extractive_summary, abstractive_summary
 from generator import generate_text
 
-# CORRECTION : st.set_page_config() doit être la première commande Streamlit.
+#Config de la page d'Entrée
+
 st.set_page_config(
     page_title="Générateur & Résumeur",
     layout="wide"
 )
 
+#authentification
+
 def check_password():
     """Affiche un formulaire de connexion et gère l'authentification."""
-    st.title("🔐 Connexion")
+    st.title("Connexion")
     st.markdown("Veuillez entrer le mot de passe pour accéder à l'application.")
     
     password = st.text_input("Mot de passe", type="password")
@@ -20,17 +23,16 @@ def check_password():
         
         if password == expected_password:
             st.session_state["password_correct"] = True
-            # CORRECTION : Utilisation de st.rerun()
             st.rerun()
         else:
             st.error("Le mot de passe fourni est incorrect.")
     return False
 
 def run_app():
-    """Exécute l'application principale après une connexion réussie."""
+    """Exécution de l'application principale après une connexion réussie."""
     i18n = {
         "fr": {
-            "title": "🤖 Système de Génération et Résumé de Texte NLP",
+            "title": "SGRTexte NLP",
             "description": "Une application pour générer et résumer des textes, basée sur des modèles Transformers.",
             "sidebar_lang": "Langue",
             "sidebar_nav": "Navigation",
@@ -39,8 +41,8 @@ def run_app():
             "summary_header": "Résumé de Texte",
             "summary_desc": "Collez un texte ci-dessous pour le résumer.",
             "summary_type_label": "Choisissez le type de résumé",
-            "summary_type_abs": "Abstractif (avancé, plus lent)",
-            "summary_type_ext": "Extractif (baseline, plus rapide)",
+            "summary_type_abs": "Abstractif",
+            "summary_type_ext": "Extractif",
             "summary_text_area": "Texte à résumer",
             "summary_placeholder": "Entrez votre texte ici...",
             "summary_button": "Lancer le résumé",
@@ -51,10 +53,10 @@ def run_app():
             "generation_prompt": "Votre prompt",
             "generation_placeholder": "Le futur de l'IA est...",
             "generation_button": "Générer le texte",
-            "footer_info": "Projet DSC559 – PROJET 3"
+            "footer_info": "Projet De Synthese 2025-2026"
         },
         "en": {
-            "title": "🤖 NLP Text Generation and Summarization System",
+            "title": "SGRText NLP",
             "description": "An application to generate and summarize texts, based on Transformer models.",
             "sidebar_lang": "Language",
             "sidebar_nav": "Navigation",
@@ -63,8 +65,8 @@ def run_app():
             "summary_header": "Text Summary",
             "summary_desc": "Paste a text below to summarize it.",
             "summary_type_label": "Choose the summary type",
-            "summary_type_abs": "Abstractive (advanced, slower)",
-            "summary_type_ext": "Extractive (baseline, faster)",
+            "summary_type_abs": "Abstractive",
+            "summary_type_ext": "Extractive",
             "summary_text_area": "Text to summarize",
             "summary_placeholder": "Enter your text here...",
             "summary_button": "Run Summary",
@@ -75,7 +77,7 @@ def run_app():
             "generation_prompt": "Your prompt",
             "generation_placeholder": "The future of AI is...",
             "generation_button": "Generate Text",
-            "footer_info": "DSC559 Project – PROJECT 3"
+            "footer_info": "Synthise Project 2025-2026"
         }
     }
     
