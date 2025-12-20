@@ -5,9 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 import re
 
-# ==============================================================================
-#                      Logique de Résumé Multilingue
-# ==============================================================================
+# Logique de Résumé Multilingue
 
 # --- Mots-vides pour le résumé extractif ---
 STOP_WORDS_FR = [
