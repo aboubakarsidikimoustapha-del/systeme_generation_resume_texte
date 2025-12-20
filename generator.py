@@ -2,9 +2,7 @@ import streamlit as st
 import torch
 from transformers import pipeline
 
-# ==============================================================================
-#                     Logique de Génération Multilingue
-# ==============================================================================
+# Logique de Génération Multilingue
 
 @st.cache_resource
 def get_text_generator(lang="fr"):
