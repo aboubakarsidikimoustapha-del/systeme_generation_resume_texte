@@ -1,6 +1,6 @@
-# Système de Génération et Résumé de Texte
+# SGRTexte(Système de Génération et Résumé de Texte)
 
-Ce projet est une application NLP (Natural Language Processing) développée dans le cadre du cours DSC559.
+SGRTexte est une application NLP (Natural Language Processing) développée dans le cadre de Projet de Synthese.
 
 ## Fonctionnalités
 
